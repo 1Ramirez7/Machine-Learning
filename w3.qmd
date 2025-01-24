@@ -1,0 +1,216 @@
+---
+title: "W2"
+format: html
+---
+
+
+```{r}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(readr)
+
+
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+
+# Read the CSV file
+df <- read_csv('https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv')
+
+# Preview the data
+# unique(df$job)
+# unique(df$marital)
+
+
+# Print unique values for each variable in the dataframe
+lapply(names(df), function(col) {
+  cat("Unique values in", col, ":\n")
+  print(unique(df[[col]]))
+  cat("\n")
+})
+```
+
+
+
+```{r}
+
+# Create a mapping of job to numbers
+job_mapping <- setNames(1:12, c(
+  "housemaid", "services", "admin.", "blue-collar", "technician", 
+  "retired", "unemployed", "self-employed", "unknown", 
+  "management", "entrepreneur", "student"
+))
+
+# Add a new variable 'job1' by mapping 'job' to the numbers
+campaign$job1 <- job_mapping[campaign$job]
+
+# Preview the updated dataset
+head(campaign)
+
+
+
+```
+
+
+
+```{r}
+
+# Define mappings for each variable
+marital_mapping <- setNames(1:4, c("married", "single", "divorced", "unknown"))
+education_mapping <- setNames(1:8, c("basic.4y", "high.school", "basic.6y", "basic.9y", 
+                                     "professional.course", "unknown", "university.degree", "illiterate"))
+default_mapping <- setNames(1:3, c("no", "unknown", "yes"))
+housing_mapping <- setNames(1:3, c("no", "yes", "unknown"))
+loan_mapping <- setNames(1:3, c("no", "yes", "unknown"))
+contact_mapping <- setNames(1:2, c("telephone", "cellular"))
+month_mapping <- setNames(1:10, c("may", "jun", "jul", "aug", "oct", "nov", "dec", "mar", "apr", "sep"))
+day_of_week_mapping <- setNames(1:5, c("mon", "tue", "wed", "thu", "fri"))
+poutcome_mapping <- setNames(1:3, c("nonexistent", "failure", "success"))
+y_mapping <- setNames(1:2, c("no", "yes"))
+
+# Add new numeric variables to the dataframe
+campaign$marital1 <- marital_mapping[campaign$marital]
+campaign$education1 <- education_mapping[campaign$education]
+campaign$default1 <- default_mapping[campaign$default]
+campaign$housing1 <- housing_mapping[campaign$housing]
+campaign$loan1 <- loan_mapping[campaign$loan]
+campaign$contact1 <- contact_mapping[campaign$contact]
+campaign$month1 <- month_mapping[campaign$month]
+campaign$day_of_week1 <- day_of_week_mapping[campaign$day_of_week]
+campaign$poutcome1 <- poutcome_mapping[campaign$poutcome]
+campaign$y1 <- y_mapping[campaign$y]
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+spacer
