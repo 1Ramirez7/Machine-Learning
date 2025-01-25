@@ -1,0 +1,108 @@
+---
+title: "titanic"
+subtitle: "Course DS 250"
+author: "Eduardo Ramirez"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 4
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+
+```{python}
+import pandas as pd
+
+# Load the dataset into a Pandas DataFrame
+url = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/netflix_titles.csv"
+netflix_df = pd.read_csv(url)
+
+# Explore the data: Display the first few rows
+print(netflix_df.head())
+
+# Display a technical summary of the data
+print(netflix_df.info())
+
+# Check for missing values
+missing_values = netflix_df.isnull().sum()
+print("Missing values in each column:")
+print(missing_values)
+
+```
+
+
+
+
+```{python}
+
+# Filter to include only rows where the type is "Movie"
+movies_df = netflix_df[netflix_df['type'] == 'Movie']
+
+# Calculate the number of rows in the filtered data
+num_movies = len(movies_df)
+print(f"Number of movies: {num_movies}")
+
+
+```
+
+
+
+```{python}
+# Count the occurrences of each value in the "rating" column for the filtered data
+rating_counts = movies_df['rating'].value_counts()
+print("Ratings count:")
+print(rating_counts)
+
+
+
+```
+
+
+
+```{python}
+
+# Define the list of standard MPAA ratings
+mpaa_ratings = ['G', 'PG', 'PG-13', 'R', 'NC-17']
+
+# Filter movies with only the standard MPAA ratings
+standard_rated_movies_df = movies_df[movies_df['rating'].isin(mpaa_ratings)]
+
+# Calculate the number of rows in the new subset
+num_standard_rated_movies = len(standard_rated_movies_df)
+print(f"Number of movies with standard MPAA ratings: {num_standard_rated_movies}")
+
+# Determine which ratings appear most often in this subset
+standard_rating_counts = standard_rated_movies_df['rating'].value_counts()
+print("Standard MPAA ratings count:")
+print(standard_rating_counts)
+
+
+```
+
+
+
+
+
+
+
+```{python}
+
+
+
+```

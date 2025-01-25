@@ -1,0 +1,404 @@
+---
+title: "W2"
+format: html
+---
+
+
+```{r}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(readr)
+
+
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+
+# Read the CSV file
+campaign <- read_csv('https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv')
+
+# Preview the data
+# unique(campaign$job)
+# unique(campaign$marital)
+
+
+# Print unique values for each variable in the dataframe
+lapply(names(campaign), function(col) {
+  cat("Unique values in", col, ":\n")
+  print(unique(campaign[[col]]))
+  cat("\n")
+})
+```
+
+
+
+```{r}
+
+# # Create a mapping of job to numbers
+# job_mapping <- setNames(1:12, c(
+#   "housemaid", "services", "admin.", "blue-collar", "technician", 
+#   "retired", "unemployed", "self-employed", "unknown", 
+#   "management", "entrepreneur", "student"
+# ))
+# 
+# # Add a new variable 'job1' by mapping 'job' to the numbers
+# campaign$job1 <- job_mapping[campaign$job]
+# 
+# 
+
+
+
+```
+
+
+
+```{r}
+
+
+
+# Define mappings for each variable
+marital_mapping <- setNames(1:4, c("married", "single", "divorced", "unknown"))
+education_mapping <- setNames(1:8, c("basic.4y", "high.school", "basic.6y", "basic.9y", 
+                                     "professional.course", "unknown", "university.degree", "illiterate"))
+default_mapping <- setNames(1:3, c("no", "unknown", "yes"))
+housing_mapping <- setNames(1:3, c("no", "yes", "unknown"))
+loan_mapping <- setNames(1:3, c("no", "yes", "unknown"))
+contact_mapping <- setNames(1:2, c("telephone", "cellular"))
+month_mapping <- setNames(1:10, c("may", "jun", "jul", "aug", "oct", "nov", "dec", "mar", "apr", "sep"))
+day_of_week_mapping <- setNames(1:5, c("mon", "tue", "wed", "thu", "fri"))
+poutcome_mapping <- setNames(1:3, c("nonexistent", "failure", "success"))
+y_mapping <- setNames(1:2, c("no", "yes"))
+job_mapping <- setNames(1:12, c(
+  "housemaid", "services", "admin.", "blue-collar", "technician", 
+  "retired", "unemployed", "self-employed", "unknown", 
+  "management", "entrepreneur", "student"
+))
+
+# Add new numeric variables to the dataframe
+campaign$marital1 <- marital_mapping[campaign$marital]
+campaign$education1 <- education_mapping[campaign$education]
+campaign$default1 <- default_mapping[campaign$default]
+campaign$housing1 <- housing_mapping[campaign$housing]
+campaign$loan1 <- loan_mapping[campaign$loan]
+campaign$contact1 <- contact_mapping[campaign$contact]
+campaign$month1 <- month_mapping[campaign$month]
+campaign$day_of_week1 <- day_of_week_mapping[campaign$day_of_week]
+campaign$poutcome1 <- poutcome_mapping[campaign$poutcome]
+campaign$y1 <- y_mapping[campaign$y]
+campaign$job1 <- job_mapping[campaign$job]
+
+# Save the dataframe to a CSV file
+# write.csv(campaign, "campaign_mapped.csv", row.names = FALSE)
+# cat("Dataframe has been saved as 'campaign_mapped.csv'")
+
+
+```
+
+```{r}
+# Create the job1 variable based on job_mapping
+campaign$job1 <- job_mapping[campaign$job]
+
+# Count each unique value in the job1 variable
+job1_counts <- table(campaign$job1)
+
+# Rename the table to show job names instead of numbers
+names(job1_counts) <- names(job_mapping)[match(names(job1_counts), job_mapping)]
+
+# Print the counts with names
+print(job1_counts)
+
+
+
+```
+
+
+```{r}
+# Count each unique value in the marital1 variable
+marital1_counts <- table(campaign$marital1)
+
+# Rename the table to show marital names instead of numbers
+names(marital1_counts) <- names(marital_mapping)[match(names(marital1_counts), marital_mapping)]
+
+# Print the counts with names
+print(marital1_counts)
+
+
+
+
+
+```
+
+
+```{r}
+
+# Count and rename education1
+education1_counts <- table(campaign$education1)
+names(education1_counts) <- names(education_mapping)[match(names(education1_counts), education_mapping)]
+print(education1_counts)
+
+```
+
+
+```{r}
+
+# Count and rename default1
+default1_counts <- table(campaign$default1)
+names(default1_counts) <- names(default_mapping)[match(names(default1_counts), default_mapping)]
+print(default1_counts)
+
+```
+
+
+```{r}
+
+# Count and rename housing1
+housing1_counts <- table(campaign$housing1)
+names(housing1_counts) <- names(housing_mapping)[match(names(housing1_counts), housing_mapping)]
+print(housing1_counts)
+
+```
+
+
+```{r}
+
+# Count and rename loan1
+loan1_counts <- table(campaign$loan1)
+names(loan1_counts) <- names(loan_mapping)[match(names(loan1_counts), loan_mapping)]
+print(loan1_counts)
+```
+
+
+```{r}
+
+# Count and rename contact1
+contact1_counts <- table(campaign$contact1)
+names(contact1_counts) <- names(contact_mapping)[match(names(contact1_counts), contact_mapping)]
+print(contact1_counts)
+```
+
+
+```{r}
+# Count and rename month1
+month1_counts <- table(campaign$month1)
+names(month1_counts) <- names(month_mapping)[match(names(month1_counts), month_mapping)]
+print(month1_counts)
+```
+
+
+```{r}
+# Count and rename day_of_week1
+day_of_week1_counts <- table(campaign$day_of_week1)
+names(day_of_week1_counts) <- names(day_of_week_mapping)[match(names(day_of_week1_counts), day_of_week_mapping)]
+print(day_of_week1_counts)
+```
+
+
+```{r}
+# Count and rename poutcome1
+poutcome1_counts <- table(campaign$poutcome1)
+names(poutcome1_counts) <- names(poutcome_mapping)[match(names(poutcome1_counts), poutcome_mapping)]
+print(poutcome1_counts)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+spacer

@@ -1,0 +1,34 @@
+---
+title: "W2"
+format: html
+---
+
+```{r}
+library(dplyr) 
+library(readr)
+
+
+```
+
+```{r}
+# Read the CSV file
+df <- read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/cereal.csv")
+
+# Display the first 5 rows
+head(df, 5)
+
+# Describe the specified columns
+df %>% select(calories, sugars, fiber, fat, protein) %>% descr()
+
+mfr_mapping <- c("A" = "American Home Food Products",
+                 "G" = "General Mills",
+                 "K" = "Kelloggs",
+                 "N" = "Nabisco",
+                 "P" = "Post",
+                 "Q" = "Quaker Oats",
+                 "R" = "Ralston Purina")
+
+df <- df %>% mutate(manufacturer = mfr_mapping[mfr])
+
+head(df, 5)
+```
