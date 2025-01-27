@@ -23,6 +23,10 @@ execute:
 ---
 
 
+The model below just runs ols with each variable as a dependant variable. This model is just to vizualize the data to see which variables have the most statiscal significance vs the least. This helps understand which variables are the most explain by the data as a whole. 
+
+
+
 ```{python}
 
 # test 4 ----------- same as test 3 but this mdoel automatically test all different variables as dependent variables---- 
@@ -73,7 +77,7 @@ for column in data.columns:
 ```
 
 
-
+This model does the same as above but shows more details
 
 ```{python}
 # test 8 ----- same as test 7 & 6 but w/out the sklearn import
@@ -127,102 +131,6 @@ for column in data.columns:
 
 
 
-
-
-
-```{python}
-
-# This code tries to compare with the y variable, but need to filter more because its to slow and some zero div errors
-
-import pandas as pd
-import plotly.graph_objects as go
-import numpy as np
-from statsmodels.nonparametric.smoothers_lowess import lowess
-from plotly.subplots import make_subplots
-
-
-# Load data
-data = pd.read_csv("https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv")
-
-# Function to create scatter plot traces
-def create_scatter_plot_traces(x_column_name, y_column_name, data):
-    lowess_result = lowess(data[y_column_name], data[x_column_name])
-    smoothed_y = lowess_result[:, 1]
-    x_values = lowess_result[:, 0]
-
-    ci = 0.1 * smoothed_y
-
-    traces = [
-        go.Scatter(
-            x=data[x_column_name], 
-            y=data[y_column_name], 
-            mode='markers', 
-            name='Data',
-            hovertemplate=(
-                f"<b>{x_column_name}:</b> %{{x}}<br>"
-                f"<b>{y_column_name}:</b> %{{y}}<br>"
-            ),
-            showlegend=False
-        ),
-        go.Scatter(
-            x=x_values, 
-            y=smoothed_y, 
-            mode='lines', 
-            name='Lowess Fit',
-            showlegend=False
-        ),
-        go.Scatter(
-            x=np.concatenate([x_values, x_values[::-1]]), 
-            y=np.concatenate([smoothed_y - ci, (smoothed_y + ci)[::-1]]), 
-            fill='toself', 
-            fillcolor='rgba(0,100,80,0.2)', 
-            line=dict(color='rgba(255,255,255,0)'), 
-            hoverinfo="skip", 
-            name='CI',
-            showlegend=False
-        )
-    ]
-
-    return traces
-
-# Function to create a subplot figure
-def create_subplot_figure(data):
-    y_column_name = 'y1'
-    # Exclude your Y variable and "Quarter" from X columns
-    x_columns = [
-        col for col in data.columns 
-        if col not in [y_column_name]
-    ]
-
-    num_plots = len(x_columns)
-    rows = (num_plots - 1) // 4 + 1
-    cols = min(4, num_plots)
-
-    fig = make_subplots(rows=rows, cols=cols, subplot_titles=x_columns)
-
-    for i, x_column in enumerate(x_columns, start=1):
-        for trace in create_scatter_plot_traces(x_column, y_column_name, data):
-            fig.add_trace(trace, row=(i-1)//4 + 1, col=(i-1)%4 + 1)
-
-    fig.update_layout(
-        height=200 * rows, 
-        width=1200, 
-        title_text="Scatter Plots with Lowess Fit"
-    )
-    
-    fig.show()
-
-
-# Create and display the figure
-create_subplot_figure(data)
-
-
-
-
-```
-
-
-
 The below model runs an ols regression model but it is not the best fit for a binary classification. IT is better to run a logistic regression or a classification tree. However this model does great in understanding statistical significance of the variables. 
 
 
@@ -252,10 +160,6 @@ print(model.summary())
 This next code is doing a logistic regression. I'm not sure of the best variables to use yet. 
 
 ```{python}
-
-X = df.drop('y1', axis=1)
-y = df['y1']
-
 import pandas as pd
 import numpy as np
 
@@ -263,6 +167,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score, classification_report
+
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+df = pd.read_csv(file_path)
+X = df[['age', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'cons.price.idx', 'cons.conf.idx', 
+         'euribor3m', 'nr.employed', 'marital1', 'education1', 'default1', 'housing1', 
+         'loan1', 'contact1', 'month1', 'day_of_week1', 'poutcome1', 'job1']]
+y = df['y1']
+
+X = df.drop('y1', axis=1)
+y = df['y1']
+
+
 
 
 # Example: separate features (X) and target (y)
@@ -389,3 +305,114 @@ nr.employed value of 5176.3 only applies to y1 value of 1
 euribor3m values from 3 to 4 only applies to y1 value of 1
 
 campaign values above 17 only apply to y1 value of 1
+
+
+
+
+
+
+The next two models run ols on each variable but data is split. the first model only inlcude y1 values of 1 or the client is not subscribed a term deposit. 
+
+Note that the 
+
+```{python}
+# test 8 ----- same as test 7 & 6 but w/out the sklearn import
+# ---------- option to change between reports- - - -- - - - - - -
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp1.csv"
+data = pd.read_csv(file_path)
+
+# Columns to exclude
+columns_to_exclude = ['y1'] # 'column_name_2', 'column_name_3'
+data = data.drop(columns=columns_to_exclude)
+
+# Iterate
+for column in data.columns:
+    print(f"Evaluating OLS model with dependent variable: {column}")
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Add a constant to the independent variables
+    X_filled = sm.add_constant(X_filled)
+
+    # Define and fit the OLS model
+    model = sm.OLS(y_filled, X_filled)
+    results = model.fit()
+
+
+    # Print 
+    
+    print(f"R^2 Score: {results.rsquared}")
+
+    print("Additional Details:")
+    print(f"R^2 Score: {results.rsquared}")
+    print(f"Adjusted R^2 Score: {results.rsquared_adj}")
+    print(f"Mean Squared Error: {results.mse_model}")
+
+    print(results.summary())
+
+
+
+
+```
+
+
+This model only inlcudes participants that have a y1 value of 2 or clients that subscribed a term deposit.
+
+```{python}
+# test 8 ----- same as test 7 & 6 but w/out the sklearn import
+# ---------- option to change between reports- - - -- - - - - - -
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp2.csv"
+data = pd.read_csv(file_path)
+
+# Columns to exclude
+columns_to_exclude = ['y1'] # 'column_name_2', 'column_name_3'
+data = data.drop(columns=columns_to_exclude)
+
+# Iterate
+for column in data.columns:
+    print(f"Evaluating OLS model with dependent variable: {column}")
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Add a constant to the independent variables
+    X_filled = sm.add_constant(X_filled)
+
+    # Define and fit the OLS model
+    model = sm.OLS(y_filled, X_filled)
+    results = model.fit()
+
+
+    # Print 
+    
+    print(f"R^2 Score: {results.rsquared}")
+
+    print("Additional Details:")
+    print(f"R^2 Score: {results.rsquared}")
+    print(f"Adjusted R^2 Score: {results.rsquared_adj}")
+    print(f"Mean Squared Error: {results.mse_model}")
+
+    print(results.summary())
+
+
+```
+
+
+
