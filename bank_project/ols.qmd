@@ -416,3 +416,75 @@ for column in data.columns:
 
 
 
+
+
+
+The code below does a decision tree model but its either 100% accurate and we get an a on the assignment or it wrong. I will go with the latter
+
+
+```{python}
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"  # Replace with your actual file path
+data = pd.read_csv(file_path)
+
+# Selecting features and target variable
+features = data.drop(['day_of_week1'], axis=1)  # Exclude 'yrbuilt' and 'parcel'
+target = data['y1']
+
+# Splitting the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.3, random_state=42)
+
+# Creating and training the Decision Tree model
+decision_tree_model = DecisionTreeClassifier(random_state=42)
+decision_tree_model.fit(X_train, y_train)
+
+# Making predictions on the test set
+predictions = decision_tree_model.predict(X_test)
+
+# Calculating evaluation metrics
+accuracy = accuracy_score(y_test, predictions)
+precision = precision_score(y_test, predictions)
+recall = recall_score(y_test, predictions)
+f1 = f1_score(y_test, predictions)
+conf_matrix = confusion_matrix(y_test, predictions)
+
+# Print evaluation metrics
+print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"F1 Score: {f1}")
+print(f"Confusion Matrix:\n{conf_matrix}")
+
+
+```
+
+
+
+```{python}
+# See the decision tree in a graph ---must run code for model first---------------
+from sklearn.tree import export_graphviz
+import graphviz
+
+# Limit the depth of the tree for visualization purposes
+decision_tree_model_vis = DecisionTreeClassifier(random_state=42, max_depth=3)
+decision_tree_model_vis.fit(X_train, y_train)
+
+# Export the decision tree to a dot file
+dot_data = export_graphviz(decision_tree_model_vis, out_file=None, 
+                           feature_names=X_train.columns,  
+                           class_names=['no on term', 'yes on term'],
+                           filled=True, rounded=True, 
+                           special_characters=True)
+
+# Visualize the graph
+graph = graphviz.Source(dot_data) 
+graph
+
+```
