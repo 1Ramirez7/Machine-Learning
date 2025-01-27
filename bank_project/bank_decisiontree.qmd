@@ -1,0 +1,490 @@
+---
+title: "OLS test"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 5
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false 
+---
+
+
+The model below just runs ols with each variable as a dependant variable. This model is just to vizualize the data to see which variables have the most statiscal significance vs the least. This helps understand which variables are the most explain by the data as a whole. 
+
+
+
+```{python}
+
+# test 4 ----------- same as test 3 but this mdoel automatically test all different variables as dependent variables---- 
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+data = pd.read_csv(file_path)
+
+# Iterate through each column in the DataFrame
+for column in data.columns:
+    print(f"Evaluating model with dependent variable: {column}")
+
+    # Set the current column as the dependent variable
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Split the dataset
+    X_train, X_test, y_train, y_test = train_test_split(X_filled, y_filled, test_size=0.2, random_state=42)
+
+    # Define and train the model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    # Evaluate the model
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    print(f"Mean Squared Error: {mse}")
+    print(f"R^2 Score: {r2}\n")
+
+    # Optionally, you can also print the coefficients for the model
+    # for i, col in enumerate(X_train.columns):
+    #     print(f"{col}: {model.coef_[i]}")
+
+
+
+```
+
+
+This model does the same as above but shows more details
+
+```{python}
+# test 8 ----- same as test 7 & 6 but w/out the sklearn import
+# ---------- option to change between reports- - - -- - - - - - -
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+data = pd.read_csv(file_path)
+
+# Columns to exclude
+#columns_to_exclude = ['Quarter'] # 'column_name_2', 'column_name_3'
+#data = data.drop(columns=columns_to_exclude)
+
+# Iterate
+for column in data.columns:
+    print(f"Evaluating OLS model with dependent variable: {column}")
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Add a constant to the independent variables
+    X_filled = sm.add_constant(X_filled)
+
+    # Define and fit the OLS model
+    model = sm.OLS(y_filled, X_filled)
+    results = model.fit()
+
+
+    # Print 
+    
+    print(f"R^2 Score: {results.rsquared}")
+
+    print("Additional Details:")
+    print(f"R^2 Score: {results.rsquared}")
+    print(f"Adjusted R^2 Score: {results.rsquared_adj}")
+    print(f"Mean Squared Error: {results.mse_model}")
+
+    print(results.summary())
+
+
+
+
+```
+
+
+
+
+The below model runs an ols regression model but it is not the best fit for a binary classification. IT is better to run a logistic regression or a classification tree. However this model does great in understanding statistical significance of the variables. 
+
+
+```{python}
+
+# -----------------First Regression------------------
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from statsmodels.regression.linear_model import OLS
+import statsmodels.api as sm
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+df = pd.read_csv(file_path)
+X = df[['age', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'cons.price.idx', 'cons.conf.idx', 
+         'euribor3m', 'nr.employed', 'marital1', 'education1', 'default1', 'housing1', 
+         'loan1', 'contact1', 'month1', 'day_of_week1', 'poutcome1', 'job1']]
+y = df['y1']
+X_with_constant = sm.add_constant(X)
+model = OLS(y, X_with_constant).fit()
+print(model.summary())
+
+
+```
+
+
+
+
+This next code is doing a logistic regression. I'm not sure of the best variables to use yet. 
+
+```{python}
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, roc_auc_score, classification_report
+
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+df = pd.read_csv(file_path)
+X = df[['age', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'cons.price.idx', 'cons.conf.idx', 
+         'euribor3m', 'nr.employed', 'marital1', 'education1', 'default1', 'housing1', 
+         'loan1', 'contact1', 'month1', 'day_of_week1', 'poutcome1', 'job1']]
+y = df['y1']
+
+X = df.drop('y1', axis=1)
+y = df['y1']
+
+
+
+
+# Example: separate features (X) and target (y)
+X = df.drop('y1', axis=1)
+y = df['y1']
+
+# Split into training (80%) and test (20%) sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.20, random_state=42
+)
+
+
+# 1. Instantiate logistic regression
+logreg = LogisticRegression(solver='liblinear', random_state=42)
+
+# 2. Train (fit) the model
+logreg.fit(X_train, y_train)
+
+# 3. Predict on the test set
+y_pred_logreg = logreg.predict(X_test)
+
+# 4. Evaluate the model
+accuracy_logreg = accuracy_score(y_test, y_pred_logreg)
+auc_logreg = roc_auc_score(y_test, y_pred_logreg)
+report_logreg = classification_report(y_test, y_pred_logreg)
+
+print("=== Logistic Regression Results ===")
+print(f"Accuracy: {accuracy_logreg:.4f}")
+print(f"ROC AUC:  {auc_logreg:.4f}")
+print("Classification Report:")
+print(report_logreg)
+
+
+
+```
+
+
+The code below is using a Decision Tree Classifier, but not ready to use since idk what is mostly doing
+
+```{python}
+
+# 1. Instantiate decision tree
+dtree = DecisionTreeClassifier(max_depth=5, random_state=42)
+
+# 2. Fit the tree
+dtree.fit(X_train, y_train)
+
+# 3. Predict on the test set
+y_pred_tree = dtree.predict(X_test)
+
+# 4. Evaluate the model
+accuracy_tree = accuracy_score(y_test, y_pred_tree)
+auc_tree = roc_auc_score(y_test, y_pred_tree)
+report_tree = classification_report(y_test, y_pred_tree)
+
+print("=== Decision Tree Results ===")
+print(f"Accuracy: {accuracy_tree:.4f}")
+print(f"ROC AUC:  {auc_tree:.4f}")
+print("Classification Report:")
+print(report_tree)
+
+
+
+
+```
+
+
+
+The following does a scatterplot to vizualize
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+
+data = pd.read_csv(file_path)
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.scatter(data['y1'], data['job1'], alpha=0.6)
+plt.title("Scatter Plot of y1 vs job1")
+plt.xlabel("y1")
+plt.ylabel("job1")
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+
+
+```
+
+the below model does a scatter plot with y1 in the x axis for all variables.
+
+```{python}
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+data = pd.read_csv(file_path)
+
+# Identify variables for plotting
+variables = data.columns.drop('y1')  # Exclude y1 since it's always on the x-axis
+
+# Create plots
+for variable in variables:
+    plt.figure(figsize=(8, 5))
+    plt.scatter(data['y1'], data[variable], alpha=0.6)
+    plt.title(f"Scatter Plot of y1 vs {variable}")
+    plt.xlabel("y1")
+    plt.ylabel(variable)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.show()
+
+
+
+```
+
+
+default1 value of 3 only applies to y1 value of 1
+
+nr.employed value of 5176.3 only applies to y1 value of 1
+
+euribor3m values from 3 to 4 only applies to y1 value of 1
+
+campaign values above 17 only apply to y1 value of 1
+
+
+
+
+
+
+The next two models run ols on each variable but data is split. the first model only inlcude y1 values of 1 or the client is not subscribed a term deposit. 
+
+Note that the 
+
+```{python}
+# test 8 ----- same as test 7 & 6 but w/out the sklearn import
+# ---------- option to change between reports- - - -- - - - - - -
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp1.csv"
+data = pd.read_csv(file_path)
+
+# Columns to exclude
+columns_to_exclude = ['y1'] # 'column_name_2', 'column_name_3'
+data = data.drop(columns=columns_to_exclude)
+
+# Iterate
+for column in data.columns:
+    print(f"Evaluating OLS model with dependent variable: {column}")
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Add a constant to the independent variables
+    X_filled = sm.add_constant(X_filled)
+
+    # Define and fit the OLS model
+    model = sm.OLS(y_filled, X_filled)
+    results = model.fit()
+
+
+    # Print 
+    
+    print(f"R^2 Score: {results.rsquared}")
+
+    print("Additional Details:")
+    print(f"R^2 Score: {results.rsquared}")
+    print(f"Adjusted R^2 Score: {results.rsquared_adj}")
+    print(f"Mean Squared Error: {results.mse_model}")
+
+    print(results.summary())
+
+
+
+
+```
+
+
+This model only inlcudes participants that have a y1 value of 2 or clients that subscribed a term deposit.
+
+```{python}
+# test 8 ----- same as test 7 & 6 but w/out the sklearn import
+# ---------- option to change between reports- - - -- - - - - - -
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp2.csv"
+data = pd.read_csv(file_path)
+
+# Columns to exclude
+columns_to_exclude = ['y1'] # 'column_name_2', 'column_name_3'
+data = data.drop(columns=columns_to_exclude)
+
+# Iterate
+for column in data.columns:
+    print(f"Evaluating OLS model with dependent variable: {column}")
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Add a constant to the independent variables
+    X_filled = sm.add_constant(X_filled)
+
+    # Define and fit the OLS model
+    model = sm.OLS(y_filled, X_filled)
+    results = model.fit()
+
+
+    # Print 
+    
+    print(f"R^2 Score: {results.rsquared}")
+
+    print("Additional Details:")
+    print(f"R^2 Score: {results.rsquared}")
+    print(f"Adjusted R^2 Score: {results.rsquared_adj}")
+    print(f"Mean Squared Error: {results.mse_model}")
+
+    print(results.summary())
+
+
+```
+
+
+
+
+
+
+The code below does a decision tree model but its either 100% accurate and we get an a on the assignment or it wrong. I will go with the latter
+
+
+```{python}
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"  # Replace with your actual file path
+data = pd.read_csv(file_path)
+
+# Selecting features and target variable
+features = data.drop(['day_of_week1'], axis=1)  # Exclude 'yrbuilt' and 'parcel'
+target = data['y1']
+
+# Splitting the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.3, random_state=42)
+
+# Creating and training the Decision Tree model
+decision_tree_model = DecisionTreeClassifier(random_state=42)
+decision_tree_model.fit(X_train, y_train)
+
+# Making predictions on the test set
+predictions = decision_tree_model.predict(X_test)
+
+# Calculating evaluation metrics
+accuracy = accuracy_score(y_test, predictions)
+precision = precision_score(y_test, predictions)
+recall = recall_score(y_test, predictions)
+f1 = f1_score(y_test, predictions)
+conf_matrix = confusion_matrix(y_test, predictions)
+
+# Print evaluation metrics
+print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"F1 Score: {f1}")
+print(f"Confusion Matrix:\n{conf_matrix}")
+
+
+```
+
+
+
+```{python}
+# See the decision tree in a graph ---must run code for model first---------------
+from sklearn.tree import export_graphviz
+import graphviz
+
+# Limit the depth of the tree for visualization purposes
+decision_tree_model_vis = DecisionTreeClassifier(random_state=42, max_depth=3)
+decision_tree_model_vis.fit(X_train, y_train)
+
+# Export the decision tree to a dot file
+dot_data = export_graphviz(decision_tree_model_vis, out_file=None, 
+                           feature_names=X_train.columns,  
+                           class_names=['no on term', 'yes on term'],
+                           filled=True, rounded=True, 
+                           special_characters=True)
+
+# Visualize the graph
+graph = graphviz.Source(dot_data) 
+graph
+
+```
