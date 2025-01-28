@@ -27,9 +27,176 @@ file_path = "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/h
 
 
 
+
+# decision tree model
+
+https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv
+"https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
+
 ```{python}
 
+# Load some test data
+import pandas as pd
+data = pd.read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv")
+data.head()
+
+
+from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
+
+# Drop missing values from embarked
+data = data.dropna()
+
+# Let's treat Pclass as categorical
+data['job_category'] = data['job'].astype('category')
+data['poutcome_category'] = data['poutcome'].astype('category')
+data['default_category'] = data['default'].astype('category')
+data['loan_category'] = data['loan'].astype('category')
+data['y_category'] = data['y'].astype('category')
+
+
+# Encode our features and target as needed
+features = ['loan', 'poutcome', 'default'] # , 'age', 'default'
+X = pd.get_dummies(data[features], drop_first=True)
+y = data['y']
+
+# Split our data into training and test data, with 30% reserved for testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
+
+# Build the decision tree
+clf = DecisionTreeClassifier()
+
+# Train it
+clf.fit(X_train, y_train)
+
+# Test it 
+clf.score(X_test, y_test)
 
 
 
 ```
+
+
+```{python}
+# Note that this gives us an accuracy score, which may not be the best metric.
+# See the SciKit-Learn docs for more ways to assess a model's performance, as
+# well as methods for cross validation.
+
+# Let's visualize the tree
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(30, 30))
+tree.plot_tree(clf, fontsize=10, feature_names=X.columns)
+plt.show()
+
+
+
+```
+
+holdout dataset
+https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank_holdout_test.csv
+
+holdout mini data set
+https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank_holdout_test_mini.csv
+
+
+```{python}
+
+# Load the holdout dataset
+holdout_data = pd.read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank_holdout_test.csv")
+
+# Perform the same transformations as on the training set
+holdout_data_encoded = pd.get_dummies(holdout_data[features], drop_first=True)
+
+# Align the columns of holdout_data_encoded with X (training data)
+holdout_data_encoded = holdout_data_encoded.reindex(columns=X.columns, fill_value=0)
+
+# Make predictions on the holdout dataset
+holdout_predictions = clf.predict(holdout_data_encoded)
+
+# Convert the predictions to a DataFrame and label the column 'y'
+predictions_df = pd.DataFrame(holdout_predictions, columns=['y'])
+
+# Save the predictions to a CSV file
+team_number = "three"  # Replace with your team number
+file_name = f"team{team_number}-module2-predictions.csv"
+predictions_df.to_csv(file_name, index=False)
+
+print(f"Predictions saved to {file_name}")
+
+
+
+```
+
+
+
+
+
+
+
+# Random Forest Model
+
+```{python}
+# Load some test data
+import pandas as pd
+data = pd.read_csv('https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv')
+data.head()
+
+from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
+
+# Drop missing values from embarked
+data = data.dropna().copy()
+# Let's treat Pclass as categorical
+data['job_category'] = data['job'].astype('category')
+data['poutcome_category'] = data['poutcome'].astype('category')
+data['default_category'] = data['default'].astype('category')
+data['loan_category'] = data['loan'].astype('category')
+data['y_category'] = data['y'].astype('category')
+
+# Encode our features and target as needed
+features = ['job', 'poutcome', 'default', 'loan']
+X = pd.get_dummies(data[features], drop_first=True)
+y = data['y']
+
+# Split our data into training and test data, with 30% reserved for testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
+
+# Build the decision tree
+clf = RandomForestClassifier()
+
+# Train it
+clf.fit(X_train, y_train)
+
+# Test it
+clf.score(X_test, y_test)
+
+# Note that this gives us an accuracy score, which may not be the best metric.
+# See the SciKit-Learn docs for more ways to assess a model's performance, as
+# well as methods for cross validation.
+```
+
+
+
+```{python}
+# Let's visualize the tree
+import matplotlib.pyplot as plt
+# This may not the best way to view each estimator as it is small
+fn=X.columns
+# cn=y.target_names
+fig, axes = plt.subplots(nrows = 1,ncols = 5,figsize = (10,2), dpi=900)
+for index in range(0, 5):
+    tree.plot_tree(clf.estimators_[index],
+                   feature_names = fn,
+                   filled = True,
+                   ax = axes[index]);
+
+    axes[index].set_title('Estimator: ' + str(index), fontsize = 11)
+fig.savefig('rf_5trees.png')
+```
+
+
