@@ -121,7 +121,7 @@ data['campaign'] = np.where(data['campaign'] > 17, 18, data['campaign'])
 
 # Encode categorical variables
 categorical_cols = ['job', 'marital', 'education', 'default', 'housing', 'loan', 
-                    'contact', 'month', 'day_of_week', 'poutcome', 'euribor3m', 'cons.price.idx', 'cons.conf.idx', 'emp.var.rate', 'previous', 'pdays']
+                    'contact', 'month', 'day_of_week', 'poutcome']
 label_encoders = {}
 for col in categorical_cols:
     le = LabelEncoder()
