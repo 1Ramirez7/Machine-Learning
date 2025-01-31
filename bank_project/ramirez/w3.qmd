@@ -209,6 +209,249 @@ print(poutcome1_counts)
 
 
 
+```{r}
+
+library(tidyverse)
+
+# Load data
+campaign <- read_csv('https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv')
+
+# Define campaign ranges
+campaign <- campaign %>%
+  mutate(campaign_range = case_when(
+    campaign >= 0 & campaign <= 5 ~ "0-5",
+    campaign >= 6 & campaign <= 10 ~ "6-10",
+    campaign >= 11 & campaign <= 15 ~ "11-15",
+    campaign >= 16 & campaign <= 17 ~ "16-17",
+    campaign >= 18 ~ "18+"
+  ))
+
+# Aggregate data
+campaign_summary <- campaign %>%
+  count(campaign_range, y) %>%
+  mutate(campaign_range = factor(campaign_range, levels = c("0-5", "6-10", "11-15", "16-17", "18+"))) %>%
+  group_by(campaign_range) %>%
+  mutate(percent = n / sum(n))  # Normalize counts within each campaign range
+
+# Create plot
+p <- ggplot(campaign_summary, aes(x = campaign_range, y = percent, fill = y)) +
+  geom_bar(stat = "identity", position = "fill") +  # Ensure bars cover full height
+  geom_text(aes(label = n), position = position_fill(vjust = 0.5), size = 5) +  # Show actual counts
+  scale_y_continuous(expand = c(0, 0)) +  # Remove extra space
+  labs(title = "Distribution of y across Campaign Ranges",
+       x = "Campaign Range",
+       y = NULL,  # Remove y-axis label
+       fill = "Y Category") +
+  theme_minimal(base_size = 14) + 
+  theme(axis.text.y = element_blank(),  # Hide y-axis labels
+        axis.ticks.y = element_blank(),
+        panel.background = element_rect(fill = "white", color = NA),  # Ensure white background
+        plot.background = element_rect(fill = "white", color = NA),  # Set plot background to white
+        legend.background = element_rect(fill = "white", color = NA))  # White legend background
+
+# Save the plot as a PNG file
+ggsave("campaign_distribution.png", plot = p, width = 8, height = 6, dpi = 300, bg = "white")
+
+
+```
+
+
+
+```{r}
+library(tidyverse)
+
+###############################################################################
+# 1. Load data
+###############################################################################
+campaign <- read_csv('https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv')
+
+###############################################################################
+# 2. Define bins (breaks) for each variable
+###############################################################################
+# Consumer Confidence Index bins
+cons_conf_breaks <- c(-Inf, -45, -40, -35, -30, Inf)
+cons_conf_labels <- c("≤ -45", "(-45, -40]", "(-40, -35]", "(-35, -30]", "> -30")
+
+# Employment Variation Rate bins
+emp_var_breaks <- c(-Inf, -3, -2, -1, 0, 1, Inf)
+emp_var_labels <- c("< -3", "[-3, -2)", "[-2, -1)", "[-1, 0)", "[0, 1)", "≥ 1")
+
+# Consumer Price Index bins
+cons_price_breaks <- c(-Inf, 92.5, 93, 93.5, 94, 94.5, Inf)
+cons_price_labels <- c("< 92.5", "[92.5, 93)", "[93, 93.5)", "[93.5, 94)", "[94, 94.5)", "≥ 94.5")
+
+# Euribor 3-month bins
+euribor_breaks <- c(-Inf, 1, 2, 3, 4, 5, Inf)
+euribor_labels <- c("< 1", "[1, 2)", "[2, 3)", "[3, 4)", "[4, 5)", "≥ 5")
+
+# Number Employed bins
+nr_emp_breaks <- c(-Inf, 5000, 5050, 5100, 5150, 5200, Inf)
+nr_emp_labels <- c("< 5000", "[5000, 5050)", "[5050, 5100)", "[5100, 5150)", "[5150, 5200)", "≥ 5200")
+
+###############################################################################
+# 3. Apply these bins to create factor variables
+###############################################################################
+campaign <- campaign %>%
+  mutate(
+    # Binned Confidence
+    cons_conf_bin = cut(cons.conf.idx, 
+                        breaks = cons_conf_breaks, 
+                        labels = cons_conf_labels,
+                        right = TRUE),
+    
+    # Binned Emp.Var.Rate
+    emp_var_bin = cut(emp.var.rate,
+                      breaks = emp_var_breaks,
+                      labels = emp_var_labels,
+                      right = FALSE),
+    
+    # Binned Cons.Price.Idx
+    cons_price_bin = cut(cons.price.idx,
+                         breaks = cons_price_breaks,
+                         labels = cons_price_labels,
+                         right = FALSE),
+    
+    # Binned Euribor3m
+    euribor_bin = cut(euribor3m,
+                      breaks = euribor_breaks,
+                      labels = euribor_labels,
+                      right = FALSE),
+    
+    # Binned Nr.Employed
+    nr_emp_bin = cut(nr.employed,
+                     breaks = nr_emp_breaks,
+                     labels = nr_emp_labels,
+                     right = FALSE)
+  )
+
+###############################################################################
+# 4. For each variable, see how the distribution of that variable's bins 
+#    breaks down by consumer confidence bin. We'll create separate bar charts 
+#    for each variable, using cons_conf_bin as 'fill' or 'facet'.
+###############################################################################
+
+# A helper function to quickly generate a grouped bar plot
+plot_binned_distribution <- function(data, x_var, fill_var, 
+                                     x_lab = NULL, fill_lab = NULL, 
+                                     title = NULL) {
+  
+  ggplot(data, aes_string(x = x_var, fill = fill_var)) +
+    geom_bar(position = "dodge", alpha = 0.8) +
+    labs(title = title, x = x_lab, fill = fill_lab, y = "Count") +
+    theme_minimal(base_size = 14) +
+    theme(legend.position = "top",
+          panel.grid.minor = element_blank())
+}
+
+# Plot 1: emp.var.rate distribution by cons.conf.idx
+p1 <- plot_binned_distribution(
+  data = campaign,
+  x_var = "emp_var_bin",
+  fill_var = "cons_conf_bin",
+  x_lab = "Employment Variation Rate (binned)",
+  fill_lab = "cons.conf.idx",
+  title = "emp.var.rate vs. cons.conf.idx"
+)
+
+# Plot 2: cons.price.idx distribution by cons.conf.idx
+p2 <- plot_binned_distribution(
+  data = campaign,
+  x_var = "cons_price_bin",
+  fill_var = "cons_conf_bin",
+  x_lab = "CPI (binned)",
+  fill_lab = "Conf. Index",
+  title = "cons.price.idx vs. cons.conf.idx"
+)
+
+# Plot 3: euribor3m distribution by cons.conf.idx
+p3 <- plot_binned_distribution(
+  data = campaign,
+  x_var = "euribor_bin",
+  fill_var = "cons_conf_bin",
+  x_lab = "Euribor 3M Rate",
+  fill_lab = "Conf. Index(binned)",
+  title = "euribor3m vs. cons.conf.idx"
+)
+
+# Plot 4: nr.employed distribution by cons.conf.idx
+p4 <- plot_binned_distribution(
+  data = campaign,
+  x_var = "nr_emp_bin",
+  fill_var = "cons_conf_bin",
+  x_lab = "N. Employed (binned)",
+  fill_lab = "C. Conf. Index",
+  title = "nr.employed vs. cons.conf.idx"
+)
+
+# Print or arrange the plots
+p1
+p2
+p3
+p4
+
+###############################################################################
+# (Optionally) If you want them all in one grid, you can use patchwork or cowplot:
+###############################################################################
+# library(patchwork)
+# (p1 + p2) / (p3 + p4)
+
+# Define file names
+plot_filenames <- c("plot_emp_var_rate.png", "plot_cons_price_idx.png", 
+                    "plot_euribor3m.png", "plot_nr_employed.png")
+
+# Save plots with a white background
+ggsave(plot_filenames[1], plot = p1 + theme(panel.background = element_rect(fill = "white", color = NA)), 
+       width = 8, height = 6, dpi = 300, bg = "white")
+
+ggsave(plot_filenames[2], plot = p2 + theme(panel.background = element_rect(fill = "white", color = NA)), 
+       width = 8, height = 6, dpi = 300, bg = "white")
+
+ggsave(plot_filenames[3], plot = p3 + theme(panel.background = element_rect(fill = "white", color = NA)), 
+       width = 8, height = 6, dpi = 300, bg = "white")
+
+ggsave(plot_filenames[4], plot = p4 + theme(panel.background = element_rect(fill = "white", color = NA)), 
+       width = 8, height = 6, dpi = 300, bg = "white")
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
