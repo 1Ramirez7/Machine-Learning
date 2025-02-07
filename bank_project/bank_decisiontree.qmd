@@ -34,7 +34,7 @@ https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv
 "https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/bank_project/camp.csv"
 
 ```{python}
-
+# this model follows a class sample.
 # Load some test data
 import pandas as pd
 data = pd.read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv")
@@ -93,7 +93,6 @@ clf.score(X_test, y_test)
 # Load some test data
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -117,139 +116,12 @@ unwanted_education = ['basic.9y', 'basic.6y']  # Add more as needed
 data['education'] = data['education'].replace(unwanted_education, 'basic9n6y')
 
 data['campaign'] = np.where(data['campaign'] > 17, 18, data['campaign'])
+# 
 
 
 # Encode categorical variables
 categorical_cols = ['job', 'marital', 'education', 'default', 'housing', 'loan', 
                     'contact', 'month', 'day_of_week', 'poutcome']
-label_encoders = {}
-for col in categorical_cols:
-    le = LabelEncoder()
-    data[col] = le.fit_transform(data[col])
-    label_encoders[col] = le
-
-# Encode our features and target as needed
-features = ['age', 'job', 'marital', 'education', 'default', 'housing', 'loan', 
-            'campaign', 'pdays', 'previous', 'poutcome', 'emp.var.rate', 
-            'cons.price.idx', 'cons.conf.idx', 'euribor3m', 'nr.employed'] # , 'age', 'default'
-X = pd.get_dummies(data[features], drop_first=True)
-y = data['y'].map({'yes': 1, 'no': 0})  # Convert target to binary (1,0)
-
-# Split our data into training and test data, with 30% reserved for testing
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
-
-# Build the decision tree
-clf = DecisionTreeClassifier(
-    criterion="gini", # gini, entropy
-    max_depth=4,  # Prevents overfitting
-    min_samples_split=10,  # Ensures sufficient samples per split
-    random_state=42
-)
-
-# Train it
-clf.fit(X_train, y_train)
-
-# Test and evaluate
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-
-print(f"Model Accuracy: {accuracy:.4f}")
-
-
-
-```
-
-
-```{python}
-# Load some test data
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import LabelEncoder
-import graphviz
-
-
-data = pd.read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank.csv")
-data.head()
-# Drop missing values from embarked
-data = data.dropna()
-
-# Apply the hard rule: Remove all "student" job entries
-#data = data[data['job'] != 'student']
-
-# List of job categories to be grouped as "unwanted"
-unwanted_jobs = ['blue-collar', 'services', 'housemaid', 'entrepreneur']  # Add more as needed
-data['job'] = data['job'].replace(unwanted_jobs, 'unwanted')
-
-unwanted_education = ['basic.9y', 'basic.6y']  # Add more as needed
-data['education'] = data['education'].replace(unwanted_education, 'basic9n6y')
-
-data['euribor3m'] = np.where(data['euribor3m'].isin([1.453, 1.629, 1.25, 1.281, 4.957, 1.466, 1.244, 4.966, 1.291, 4.955, 1.344, 1.479, 1.334, 4.958, 4.076, 4.96, 1.327, 4.968, 4.965, 4.12, 4.962, 4.967, 1.313, 4.021, 4.864, 4.963, 1.299, 4.964, 4.947, 4.961, 4.866, 4.959, 4.86, 4.859, 4.858, 4.865, 4.153, 4.191, 4.855, 4.97, 4.856, 4.857
-]), 4.857, data['euribor3m'])
-
-data['euribor3m'] = np.where(data['euribor3m'].isin([4.956, 0.89, 0.942, 0.888, 0.891, 0.979, 0.914, 0.894, 4.733, 3.879, 3.563, 0.944, 0.937, 0.927, 3.901, 3.853, 3.816, 3.743, 3.669, 3.488, 3.428, 3.329, 1.574, 1.047, 1.045, 0.996, 0.969, 0.956, 0.953
-]), 5, data['euribor3m'])
-
-data['euribor3m'] = np.where(data['euribor3m'].isin([0.933, 0.688, 0.87, 0.885, 0.755, 4.936, 1.548, 1.726, 0.697, 4.794, 0.985, 0.637, 0.683, 1.04, 0.652, 0.9, 0.835, 1.799, 0.634, 4.223, 1.037, 0.762, 0.733, 0.654, 1.025, 5.045, 1.035, 1.031, 0.802, 0.655, 0.77
-]), 0.5, data['euribor3m'])
-
-data['euribor3m'] = np.where(data['euribor3m'].isin([0.905, 0.639, 0.735, 0.899, 0.846, 0.903, 1.043, 0.695, 0.649, 4.912, 0.778, 0.704, 0.638, 4.921, 4.76, 4.474, 1.778, 1.007, 0.69, 0.788, 0.84, 0.653, 0.659, 0.79, 0.677, 0.73, 0.715, 0.644, 0.684, 1.602, 0.723, 1.046, 0.706, 0.72, 1.032, 0.829, 4.827, 1.008, 0.721, 0.708, 0.904, 0.877, 0.767, 0.896, 0.959, 1.65, 1.085, 0.71, 1.663, 0.81, 1.235, 0.635, 0.646, 0.682, 1.614, 0.876, 0.668, 0.88, 0.714, 0.699, 1.072
-]), 1, data['euribor3m'])
-
-data['euribor3m'] = np.where(data['euribor3m'].isin([0.642, 0.737, 0.761, 0.672, 0.692, 0.64, 4.663, 1.041, 0.729, 0.709, 0.685, 0.813, 4.918, 4.592, 0.727, 1.584, 0.921, 0.766, 0.749, 1.531, 0.886, 0.827, 0.773, 0.797, 0.879, 0.881, 1.049, 0.893, 1.365, 0.728, 0.643, 1, 0.702, 1.044, 5, 1.56, 0.651, 0.869, 0.748, 0.716, 1.05, 0.972, 1.268, 1.406, 0.707, 1.029, 0.851, 0.781, 1.286, 0.982, 0.663, 4.343, 0.75, 0.732, 1.26, 0.849, 0.645, 0.722, 0.884, 0.754, 1.811, 0.854, 0.889, 4.7, 1.028, 0.712, 0.809, 0.859, 1.556, 0.65, 0.898, 0.878, 0.838, 0.717, 0.987, 1.262, 1.059, 1.687, 1.538, 0.744, 0.718, 0.743, 1.64, 1.039, 0.822, 1.03, 1.018, 0.993, 0.895, 0.7, 0.861, 1.259, 0.739, 1.52, 0.908, 0.834, 0.768, 0.803, 0.821, 1.372, 1.423, 0.742, 1.757, 0.883, 4.406, 1.224, 1.354, 0.74, 1.51, 1.4, 1.099, 0.701, 1.252, 1.264, 0.819, 0.724, 1.415, 0.873, 0.977, 0.882, 1.703, 1.016, 0.711, 1.048, 1.392, 1.215, 0.825, 4.245, 1.445, 1.435, 0.636, 0.741]), 2, data['euribor3m'])
-
-data['euribor3m'] = np.where(data['euribor3m'].isin([0.731, 0.782, 0.965, 0.771, 0.753, 0.752, 1.498, 0.843, 1.27, 4.286, 0.793, 1.483, 1.266, 1.384, 1.206, 0.713, 1.405, 1.41, 0.719
-]), 3, data['euribor3m'])
-
-data['cons.price.idx'] = np.where(data['cons.price.idx'].isin([93.994, 94.465, 93.444, 93.2, 93.918, 92.893
-]), 93.994, data['cons.price.idx'])
-
-data['cons.price.idx'] = np.where(data['cons.price.idx'].isin([92.201, 92.963, 92.469, 92.431, 92.379, 92.843, 94.601, 94.055, 92.649, 94.767
-]), 92.201, data['cons.price.idx'])
-
-data['cons.price.idx'] = np.where(data['cons.price.idx'].isin([94.199, 92.713, 94.027, 94.215, 93.749, 93.369, 93.876, 93.798
-]), 92.713, data['cons.price.idx'])
-
-data['cons.conf.idx'] = np.where(data['cons.conf.idx'].isin([-31.4, -40.8, -33.6, -26.9, -29.8, -50, -49.5, -39.8, -30.1, -50.8
-]), -40.8, data['cons.conf.idx'])
-
-data['cons.conf.idx'] = np.where(data['cons.conf.idx'].isin([-36.4, -41.8, -36.1, -42, -42.7, -46.2
-]), -42.7, data['cons.conf.idx'])
-
-data['cons.conf.idx'] = np.where(data['cons.conf.idx'].isin([-37.5, -33, -38.3, -40.3, -34.6, -34.8, -40
-]), -38.3, data['cons.conf.idx'])
-
-data['emp.var.rate'] = np.where(data['emp.var.rate'].isin([1.1, 1.4, -0.1
-]), 1.1, data['emp.var.rate'])
-
-data['emp.var.rate'] = np.where(data['emp.var.rate'].isin([-3.4, -1.1, -3, -1.7
-]), -1.7, data['emp.var.rate'])
-
-data['pdays'] = np.where(data['pdays'].isin([21, 27, 25, 26
-]), 25, data['pdays'])
-
-data['pdays'] = np.where(data['pdays'].isin([18, 7, 3, 6, 8, 13
-]), 18, data['pdays'])
-
-data['pdays'] = np.where(data['pdays'].isin([9, 11, 10, 16, 2, 14, 5, 15, 0
-]), 16, data['pdays'])
-
-data['pdays'] = np.where(data['pdays'].isin([12, 22, 4
-]), 12, data['pdays'])
-
-data['pdays'] = np.where(data['pdays'].isin([17, 19, 1
-]), 1, data['pdays'])
-
-data['campaign'] = np.where(data['campaign'] > 17, 18, data['campaign'])
-
-
-
-# Encode categorical variables
-categorical_cols = ['job', 'marital', 'education', 'default', 'housing', 'loan', 
-                    'contact', 'month', 'day_of_week', 'poutcome', 'euribor3m', 'cons.price.idx', 'cons.conf.idx', 'emp.var.rate', 'previous', 'pdays']
 label_encoders = {}
 for col in categorical_cols:
     le = LabelEncoder()
@@ -307,23 +179,6 @@ graph.view()
 
 ```
 
-
-
-```{python}
-# Note that this gives us an accuracy score, which may not be the best metric.
-# See the SciKit-Learn docs for more ways to assess a model's performance, as
-# well as methods for cross validation.
-
-# Let's visualize the tree
-import matplotlib.pyplot as plt
-
-fig, ax = plt.subplots(figsize=(30, 30))
-tree.plot_tree(clf, fontsize=10, feature_names=X.columns)
-plt.show()
-
-
-
-```
 
 holdout dataset
 https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/bank_holdout_test.csv
