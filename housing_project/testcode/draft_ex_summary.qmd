@@ -1,0 +1,58 @@
+---
+title: "Housing Project"
+subtitle: "Draft executive Summary"
+format: 
+  html:
+    error: false
+    message: false
+    warning: false
+    toc: true
+    code-fold: true
+    math: katex # katex, mathjax, none 
+    css: style.css
+---
+
+project predictions?
+dataset: https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing_holdout_test.csv
+
+testing?
+https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv
+
+
+```{r}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,
+               tsibble, 
+               tsibbledata,
+               fable,
+               fable.prophet,
+               feasts,
+               patchwork,
+               lubridate,
+               rio,
+               ggplot2,
+               kableExtra, 
+               tidyquant,
+               plotly)
+
+```
+
+
+
+```{r}
+df <- read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv")
+
+
+```
+
+
+
+# Predicted vs. Actual Scatter Plot
+
+Purpose: To provide quantifiable, visual evidence that your model’s predictions are reliable.
+What to Include:
+Plot actual home prices on one axis and predicted prices on the other.
+A 45-degree reference line that represents perfect predictions.
+Optionally, annotate the plot with key metrics such as RMSE, MAE, or $R^2$
+

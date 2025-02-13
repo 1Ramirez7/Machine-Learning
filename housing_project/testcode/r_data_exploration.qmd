@@ -1,0 +1,390 @@
+---
+title: "Housing Project data exploration"
+subtitle: "Module 3"
+format: 
+  html:
+    error: false
+    message: false
+    warning: false
+    toc: true
+    code-fold: true
+    math: katex # katex, mathjax, none 
+    css: style.css
+---
+
+project predictions?
+dataset: https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing_holdout_test.csv
+
+testing?
+https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv
+
+
+```{r}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,
+               tsibble, 
+               tsibbledata,
+               fable,
+               fable.prophet,
+               feasts,
+               patchwork,
+               lubridate,
+               rio,
+               ggplot2,
+               kableExtra, 
+               tidyquant,
+               plotly)
+
+```
+
+
+
+```{r}
+df <- read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv")
+
+
+```
+
+
+
+# Predicted vs. Actual Scatter Plot
+
+Purpose: To provide quantifiable, visual evidence that your model’s predictions are reliable.
+What to Include:
+Plot actual home prices on one axis and predicted prices on the other.
+A 45-degree reference line that represents perfect predictions.
+Optionally, annotate the plot with key metrics such as RMSE, MAE, or $R^2$
+
+```{r}
+
+ggplot(df, aes(x = yr_built, y = price / 1000)) +
+  geom_point() +
+  labs(x = "Year Built", y = "Price (thousands)", title = "Scatterplot of Price vs. Year Built") +
+  theme_minimal()
+
+```
+
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+df_scaled <- df %>%
+  mutate(
+    price_scaled = rescale(price, to = c(0, 1)),
+    yr_built_scaled = rescale(yr_built, to = c(0, 1))
+  )
+
+ggplot(df_scaled, aes(x = yr_built_scaled, y = price_scaled)) +
+  geom_point() +
+  labs(x = "Year Built (Scaled)", y = "Price (Scaled)", 
+       title = "Scatterplot of Scaled Price vs. Scaled Year Built") +
+  ylim(0, 0.5) +
+  theme_minimal()
+
+
+```
+
+
+
+```{r}
+# average price giving the year it was built
+# This is not a good one since sale year is 2014 and 2015
+# ok it is good, as some correlation can be found.
+library(dplyr)
+
+df_avg_price <- df |>
+  group_by(yr_built) |>
+  summarise(avg_price = mean(price, na.rm = TRUE))
+
+# View result
+df_avg_price
+
+
+
+```
+
+
+
+```{r}
+# this one is good
+# it plots the average price per zip code
+
+library(dplyr)
+
+df_avg_price_zip <- df |>
+  group_by(zipcode) |>
+  summarise(avg_price = mean(price, na.rm = TRUE))
+
+
+```
+
+```{r}
+
+library(dplyr)
+
+df_count_price_zip <- df |>
+  group_by(zipcode) |>
+  summarise(avg_price = mean(price, na.rm = TRUE))
+
+```
+
+
+```{r}
+library(dplyr)
+library(lubridate)
+
+df_weekly_counts <- df %>%
+  mutate(week = floor_date(as.Date(date), unit = "week")) %>%
+  group_by(week) %>%
+  summarise(sold = n())
+
+
+ggplot(df_weekly_counts, aes(x = week, y = sold)) +
+  geom_line() +
+  labs(x = "Date", y = "Sold", title = "Sold homes per week") +
+  theme_minimal()
+
+```
+
+
+
+```{r}
+# this counts the number of homes sold per month
+library(dplyr)
+library(lubridate)
+
+df_m_counts <- df %>%
+  mutate(month = floor_date(as.Date(date), unit = "month")) %>%
+  group_by(month) %>%
+  summarise(sold = n(), .groups = "drop")
+
+ggplot(df_m_counts, aes(x = month, y = sold)) +
+  geom_line() +
+  labs(x = "Date", y = "Sold", title = "Sold homes per week") +
+  theme_minimal()
+
+
+df_m_counts
+
+```
+
+
+
+
+
+
+```{r}
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+spacer

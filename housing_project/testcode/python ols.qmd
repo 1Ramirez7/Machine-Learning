@@ -1,0 +1,850 @@
+---
+title: "OLS test"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 5
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false 
+---
+
+
+The model below just runs ols with each variable as a dependant variable. This model is just to vizualize the data to see which variables have the most statiscal significance vs the least. This helps understand which variables are the most explain by the data as a whole. 
+
+
+
+```{python}
+
+# this mdoel automatically test all different variables as dependent variables---- 
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv"
+data = pd.read_csv(file_path)
+
+variables_to_drop = ['id', 'date']
+
+# Iterate through each column in the DataFrame
+for column in data.columns:
+    if column in variables_to_drop:
+        continue  # Skip if column is in the drop list
+    print(f"Evaluating model with dependent variable: {column}")
+
+    # Set the current column as the dependent variable
+    y = data[column]
+    X = data.drop(columns=[column] + variables_to_drop, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Split the dataset
+    X_train, X_test, y_train, y_test = train_test_split(X_filled, y_filled, test_size=0.2, random_state=42)
+
+    # Define and train the model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    # Evaluate the model
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    print(f"Mean Squared Error: {mse}")
+    print(f"R^2 Score: {r2}\n")
+
+    # print the coefficients for the model
+    # for i, col in enumerate(X_train.columns):
+    #     print(f"{col}: {model.coef_[i]}")
+
+```
+
+results with r^2 of 1: sqft_living, sqft_above, sqft_basement
+
+
+
+
+
+
+
+This model does the same as above but shows more details
+
+```{python}
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv"
+data = pd.read_csv(file_path)
+
+# Columns to exclude
+columns_to_exclude = ['id', 'date', 'sqft_living', 'sqft_above', 'sqft_basement'] # 
+data = data.drop(columns=columns_to_exclude)
+
+# Iterate
+for column in data.columns:
+    print(f"Evaluating OLS model with dependent variable: {column}")
+    y = data[column]
+    X = data.drop(column, axis=1)
+
+    # Handling missing values
+    X_filled = X.fillna(X.mean())
+    y_filled = y.fillna(y.mean())
+
+    # Add a constant to the independent variables
+    X_filled = sm.add_constant(X_filled)
+
+    # Define and fit the OLS model
+    model = sm.OLS(y_filled, X_filled)
+    results = model.fit()
+
+
+    # Print 
+    
+    print(f"R^2 Score: {results.rsquared}")
+
+    print("Additional Details:")
+    print(f"R^2 Score: {results.rsquared}")
+    print(f"Adjusted R^2 Score: {results.rsquared_adj}")
+    print(f"Mean Squared Error: {results.mse_model}")
+
+    print(results.summary())
+
+
+
+
+```
+
+
+
+
+The below model runs an ols regression model
+
+
+```{python}
+
+# -----------------First Regression------------------
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from statsmodels.regression.linear_model import OLS
+import statsmodels.api as sm
+file_path = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv"
+df = pd.read_csv(file_path)
+
+X = df.drop(columns=['id', 'date', 'sqft_living', 'sqft_above', 'sqft_basement'])  # drop variables
+y = df['price'] # independent variable
+
+X_with_constant = sm.add_constant(X)
+model = OLS(y, X_with_constant).fit()
+print(model.summary())
+
+
+```
+
+
+
+
+# VIF results for all variables
+
+
+| **VIF Value** | **Variance Inflation Key** | **Effect on $R^2$** | **Interpretation** |
+|--------------|---------------------------|------------------------|--------------------|
+| 1           | No multicollinearity        | $R^2$ is unaffected | Independent variable has no linear relation with others |
+| 1 - 5       | Low to moderate multicollinearity | Slight increase in $R^2$ | Variables have mild correlation but are generally fine |
+| 5 - 10      | Moderate to high multicollinearity | High $R^2$ but unstable estimates | Model may have redundancy; consider removing variables |
+| > 10        | Severe multicollinearity    | $R^2$ is very high but misleading | Estimates are unreliable; multicollinearity should be addressed |
+
+
+```{python}
+
+import pandas as pd
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+import statsmodels.api as sm
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv"
+data = pd.read_csv(file_path)
+
+
+
+# delete this data as it is custum to speficic data set
+data = data.drop(["price", "date", 'yr_built', 'zipcode', 'sqft_basement', 'sqft_above'], axis=1)
+
+# end delete code line for specific data set
+
+
+# Selecting only numeric columns for VIF computation
+numeric_data = data.select_dtypes(include=['float64', 'int64'])
+
+# Fill missing values with column means
+numeric_data_filled = numeric_data.fillna(numeric_data.mean())
+# Add a constant to the independent variables
+numeric_data_filled = sm.add_constant(numeric_data_filled)
+
+# Calculate VIF for each variable
+vif_data = pd.DataFrame()
+vif_data["Feature"] = numeric_data_filled.columns
+vif_data["VIF"] = [variance_inflation_factor(numeric_data_filled.values, i) for i in range(numeric_data_filled.shape[1])]
+
+# Display the VIF for each variable
+print(vif_data)
+
+
+```
+
+
+
+# Running Breusch-Pagan test.
+
+This code is the same as model 2.3, but it  returns results for the Breusch-Pagan test and graphs.
+This test already excludes columns with high VIF vales
+
+BP test explanation
+
+The test uses the following null and alternative hypotheses:
+
+Null Hypothesis (H0): Homoscedasticity is present (the residuals are distributed with equal variance)
+Alternative Hypothesis (HA): Heteroscedasticity is present (the residuals are not distributed with equal variance)
+If the p-value of the test is less than some significance level (i.e. α = .05) then we reject the null hypothesis and conclude that heteroscedasticity is present in the regression model.
+
+```{python}
+# Model 4 -------------- -- returns Breusch-pagan test ---- 
+# drop columns include non numeric and high vif value. 
+
+import pandas as pd
+import statsmodels.api as sm
+from statsmodels.stats.diagnostic import het_breuschpagan
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+
+file_path = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv"
+data = pd.read_csv(file_path)
+
+
+excel_file_path = "housing_data.xlsx"
+data.to_excel(excel_file_path, index=False)
+
+print(f"File saved as {excel_file_path}")
+
+# drop columns
+columns_to_drop = ['id', 'date']
+data = data.drop(columns=columns_to_drop, errors='ignore')
+
+# Handling missing values and non-numeric data
+#data = data.select_dtypes(include=['float64', 'int64']).fillna(data.mean())
+
+# new
+#data = pd.get_dummies(data, columns=['bedrooms', 'floors', 'waterfront', 'view', 'condition', 'grade', 'yr_renovated'], drop_first=True)
+
+
+
+# Define dependent variable
+dependent_variable = 'price'
+
+
+y = data[dependent_variable]
+X = sm.add_constant(data.drop(columns=[dependent_variable]))
+
+
+model = sm.OLS(y, X).fit()
+
+# Run the Breusch-Pagan test and display results
+bp_test = het_breuschpagan(model.resid, model.model.exog)
+bp_test_labels = ['Lagrange Multiplier statistic', 'p-value', 'f-value', 'f p-value']
+bp_test_results = pd.DataFrame([bp_test], columns=bp_test_labels)
+print("Breusch-Pagan Test Results:")
+print(bp_test_results)
+
+# Calculate residuals
+residuals = model.resid
+
+# Creating residual plots for each independent variable
+n_cols = 3  # Number of columns in the plot grid
+n_rows = (len(X.columns) - 1 + n_cols - 1) // n_cols  # Calculate the number of rows needed
+
+fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(15, n_rows * 4))
+fig.tight_layout(pad=5.0)
+
+# Exclude the constant when plotting
+variables = list(X.columns)
+variables.remove('const') # not needed when adding certain columns error wil be this or similar: 'IndexError: index 5 is out of bounds for axis 0 with size 5' Adding more columns exceeds available subplots, causing index error.
+
+# Plotting each variable
+for i, var in enumerate(variables):
+    row, col = i // n_cols, i % n_cols
+    sns.scatterplot(x=X[var], y=residuals, ax=axes[row, col])
+    axes[row, col].set_title(f'Residuals vs {var}')
+    axes[row, col].set_xlabel(var)
+    axes[row, col].set_ylabel('Residuals')
+
+# Adjust layout for any empty plots in the last row
+for j in range(i + 1, n_rows * n_cols):
+    fig.delaxes(axes[j // n_cols, j % n_cols])
+
+plt.show()
+
+```
+
+
+
+
+the below model does a scatter plot with y1 in the x axis for all variables.
+
+```{python}
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+file_path = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing.csv"
+data = pd.read_csv(file_path)
+
+# Identify variables for plotting
+variables = data.columns.drop('price')  # Exclude y1 since it's always on the x-axis
+
+# Create plots
+for variable in variables:
+    plt.figure(figsize=(8, 5))
+    plt.scatter(data['y1'], data[variable], alpha=0.6)
+    plt.title(f"Scatter Plot of y1 vs {variable}")
+    plt.xlabel("price")
+    plt.ylabel(variable)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.show()
+
+
+
+```
+
+
+
+
+# maps the homes which is super nice. 
+
+```{python}
+# Install folium if not already installed
+!pip install folium
+
+import pandas as pd
+import folium
+
+# Load the dataset
+housing = pd.read_csv("https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing_holdout_test.csv")
+
+# Create a map centered at the mean location of the dataset
+map_center = [housing['lat'].mean(), housing['long'].mean()]
+housing_map = folium.Map(location=map_center, zoom_start=10)
+
+# Add points to the map
+for _, row in housing.iterrows():
+    folium.CircleMarker(
+        location=[row['lat'], row['long']],
+        radius=2,  # Adjust size of markers
+        color='blue',
+        fill=True,
+        fill_color='blue',
+        fill_opacity=0.6
+    ).add_to(housing_map)
+
+# Display the map
+housing_map
+
+
+
+```
+
+
+
+port, fishing
+
+
+```{python}
+# this code does some geo distance but not the best
+import osmnx as ox
+from haversine import haversine, Unit
+import pandas as pd
+
+
+# Load your housing data (as you did)
+housing = pd.read_csv('C://Users//eduar//Downloads//housing_df.csv')
+
+# 1. Get water body data from OSM (e.g., rivers, streams, smaller lakes)
+place = "Seattle, Washington, USA"  # Or a more specific area
+tags = {"waterway": True, "water": True} # Or more specific tags
+water_gdf = ox.features_from_place(place, tags)
+
+
+# Convert GeoDataFrame to a regular DataFrame
+water_df = water_gdf.drop(columns="geometry")  # Drop geometry if not needed
+
+# Display as DataFrame
+print(water_df.head())
+
+# Filter out large lakes/oceans if needed (Important!)
+# Example filters (adjust as needed):
+if "name" in water_gdf.columns: # Check if column exists, as it is not always present.
+    water_gdf = water_gdf[~water_gdf["name"].str.contains("Puget Sound", na=False)] # Use ~ to exclude
+    water_gdf = water_gdf[~water_gdf["name"].str.contains("Lake Washington", na=False)] # Use ~ to exclude
+# 2. Use your existing housing DataFrame 'housing'
+housing_df = housing  # No need to create a new DataFrame
+
+# 3. Calculate distance to nearest water body for each house
+distances = []
+for i, row in housing_df.iterrows():
+    house_coord = (row['lat'], row['long'])  # Use 'lat' and 'long' columns
+    min_dist = float('inf')  # Initialize with infinity
+    for j, water_row in water_gdf.iterrows():
+        try:
+            water_coord = (water_row.geometry.y, water_row.geometry.x)
+            dist = haversine(house_coord, water_coord, unit=Unit.MILES)
+            min_dist = min(min_dist, dist)
+        except AttributeError:
+            continue  # Handle missing geometry data
+    distances.append(min_dist)
+
+housing_df['distance_to_water'] = distances  # Add the new column to your 'housing' DataFrame
+
+print(housing_df.head()) # Print the first few rows to verify
+
+# Now you can use the 'housing_df' DataFrame (which now includes the 'distance_to_water' column) 
+# for your machine learning model.
+
+
+```
+
+
+
+
+
+# The following codes are for downloading csv and filtering large datasets
+
+```{python}
+import pandas as pd
+
+# URL of the CSV file
+url = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing_holdout_test_mini.csv"
+
+# Read the CSV file into a DataFrame
+df = pd.read_csv(url)
+
+# Save the DataFrame as a CSV file
+df.to_csv("housing_holdout_test_mini.csv", index=False)
+
+print("File downloaded and saved as 'housing_holdout_test.csv'")
+
+
+```
+
+
+
+This code just gets a random sample: made for large data frame
+```{python}
+import pandas as pd
+
+
+
+# Define the file path
+file_path = "C://Users//eduar//Downloads//Real Property Appraisal History_//EXTR_RealPropApplHist_V.csv"
+
+# Read the CSV file in chunks
+chunk_size = 100000  # Adjust based on memory capacity
+sampled_rows = []
+
+for chunk in pd.read_csv(file_path, chunksize=chunk_size):
+    sampled_rows.append(chunk.sample(n=10000, replace=False) if len(chunk) >= 1000 else chunk)
+
+# Combine all sampled rows and take a final random sample of 1000 rows
+final_sample = pd.concat(sampled_rows).sample(n=1000, replace=False)
+
+# Save to a new CSV file
+output_file = "sampled_1000_rows.csv"
+final_sample.to_csv(output_file, index=False)
+
+print(f"Sample saved to {output_file}")
+
+
+
+```
+
+
+```{python}
+import pandas as pd
+
+# Define the file path
+file_path = "C://Users//eduar//Downloads//Tax Data_//EXTR_TaxAcctReceivable_V.csv"
+
+# Define year values for filtering
+valid_years = {2014, 2015}
+
+# Read the CSV file in chunks
+chunk_size = 30000000  # Adjust based on memory capacity
+filtered_rows = []
+
+for chunk in pd.read_csv(file_path, chunksize=chunk_size):
+    # Filter based on BillYr values
+    chunk_filtered = chunk[chunk['BillYr'].astype(str).str.match(r'^\d{4}$')]  # Ensure 4-digit years
+    chunk_filtered = chunk_filtered[chunk_filtered['BillYr'].astype(int).isin(valid_years)]
+    
+    if not chunk_filtered.empty:
+        filtered_rows.append(chunk_filtered)
+
+# Combine all filtered rows and take a random sample of 1000 rows
+if filtered_rows:
+    final_sample = pd.concat(filtered_rows).sample(n=400000, replace=False) if len(pd.concat(filtered_rows)) >= 1000 else pd.concat(filtered_rows)
+else:
+    final_sample = pd.DataFrame()  # Empty DataFrame if no rows match
+
+# Save to a new CSV file if there are matching records
+output_file = "filtered_sampled_1000_rows.csv"
+if not final_sample.empty:
+    final_sample.to_csv(output_file, index=False)
+    print(f"Filtered sample saved to {output_file}")
+else:
+    print("No records found for the specified years.")
+
+
+
+
+
+
+
+```
+
+
+
+
+# following code is to filter training data and King data
+and to join with new data
+
+
+```{python}
+# this code makes a major column for the housing dataset
+
+import pandas as pd
+
+# Load the CSV file
+df = pd.read_csv("C://Users//eduar//Downloads//housing_df.csv")
+
+# i undid this, i think this causes some issues with the string code when trying to merge with other columns
+# liek the string prevents it
+df['Major'] = df['id'].astype(str).str[:6]
+
+# Display the updated DataFrame
+print(df.head())  # Prints the first few rows
+
+# Save the updated DataFrame if needed
+df.to_csv("king_housing.csv", index=False)
+
+
+
+```
+
+
+df1 = pd.read_csv("C://git//ml//housing_project//testcode//king_housing.csv")
+df2 = pd.read_csv("C://Users//eduar//Downloads//Parcel_//EXTR_Parcel.csv")
+
+```{python}
+# some encoding errors
+# latin-1 will read this csv files or at least the large one. 
+
+import pandas as pd
+
+
+df1 = pd.read_csv("C://git//ml//housing_project//testcode//king_housing.csv")
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//property.csv")
+
+
+df1['id']
+df2['AcctNbr']
+
+
+
+filtered_df = df2[df2['read'].isin(df1['id'])]
+
+if not filtered_df.empty:  # Check if the filtered DataFrame is empty
+    filtered_df.to_csv("filtered_housing_df.csv", index=False)
+    print("Filtered data saved to filtered_housing_df.csv")
+else:
+    print("No matching IDs found.  The filtered CSV is empty.")
+
+
+
+
+
+```
+
+
+
+Ok so i need to merge real property and parcel first. parcel and real property have matching major and minor so joining is easy. but the parcel has the SqFtLot which will be brought from the parcel to what ever columns from real property. zip code can be match with all available dfs
+
+from the filter dataframe we can filter from the first 6 values of id (or major or accbr), then we can match zip, follow by sq lot. 
+
+```{python}
+import pandas as pd
+
+# Load the DataFrame
+
+
+
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//property.csv")
+
+# Ensure Major and Minor are treated as strings, then concatenate
+df2['more'] = df2['Major'].astype(str) + df2['Minor'].astype(str)
+
+# Save the updated DataFrame to a new CSV file
+df2.to_csv("C://git//ml//housing_project//testcode//property_updated.csv", index=False)
+
+print("File saved successfully as 'property_updated.csv'")
+
+
+
+```
+
+this code is merging the updated parcel and real property dataframes 
+
+```{python}
+import pandas as pd
+
+# Load the DataFrames
+df1 = pd.read_csv("C://git//ml//housing_project//testcode//property_updated.csv", dtype={'more': str})
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//parcel_updated.csv", dtype={'more': str})
+
+# Ensure 'more' is treated as a string in both DataFrames
+df1['more'] = df1['more'].astype(str)
+df2['more'] = df2['more'].astype(str)
+
+# Merge DataFrames on 'more' column
+merged_df = df1.merge(df2, on='more', how='inner')  # Change to 'outer' if needed
+
+# Save the merged DataFrame to a new CSV file
+merged_df.to_csv("C://git//ml//housing_project//testcode//merged_data_fixed.csv", index=False)
+
+print("Merged file saved successfully as 'merged_data_fixed.csv'")
+
+
+
+
+```
+
+
+
+
+
+
+
+```{python}
+# ok this code block is needed since it follows after filtering parcel and property (join where major and minor equal)
+
+import pandas as pd
+
+# Load the DataFrames
+df1 = pd.read_csv("C://git//ml//housing_project//testcode//king_housing-filterstep3.csv")
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//merged_data_fixed.csv")
+
+# Ensure 'zip' columns are treated as strings for matching
+df1['more'] = df1['more'].astype(str)
+df2['more'] = df2['more'].astype(str)
+
+
+# Find 'zip' values in df1 that are NOT in df2
+unmatched_df1 = df1[~df1['more'].isin(df2['more'])]
+
+# Count the number of unmatched observations
+unmatched_count = unmatched_df1.shape[0]
+
+print(f"Number of observations in df1 that did not match in df2: {unmatched_count}")
+
+
+# Filter df2 to keep only rows where 'zip' matches df1
+df2_filtered = df2[df2['more'].isin(df1['more'])]
+
+# Save the filtered DataFrame to a new CSV file
+df2_filtered.to_csv("C://git//ml//housing_project//testcode//final.csv", index=False)
+
+# filtering done
+# zipcode
+# sqftlot and sqft_lot (there is two sqlot in housing df) merge_data_2 
+# i filter merge_data_2, and I remove the first two digits to the right, because those are extra numbers so now pracel should match with housing id.  merge_data_3
+
+
+```
+
+
+```{python}
+# this code makes the matching more column in filter 3
+
+import pandas as pd
+
+# Load the DataFrame
+
+
+
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//merge_data_3.csv")
+
+# now combing major and minor but adding 'm' in between to cut out more duplicates
+df2['more'] = df2['Major'].astype(str) + 'm' + df2['Minor'].astype(str)
+
+# Save the updated DataFrame to a new CSV file
+df2.to_csv("C://git//ml//housing_project//testcode//merge_data_4.csv", index=False)
+
+print("File saved successfully as 'merge_data_4.csv'")
+
+
+```
+
+
+# fixed merge data set
+
+the merged_data_fixed has the parcel and real property merged/joined as wanted
+
+now i need to merge with king_housing
+
+where 
+
+This following python code is what we will use to test our machine learning. this code is first intended to merge for the properties in our observations. in this case the housing data frame. this code filtering would also be use when doing the hold out data set because we are adding new columns.
+
+
+
+
+```{python}
+# working with merge_data_4 which remove the extra filter codes not use and has the new more variable, which matches the 'more' variable in merge_data_4
+
+
+
+
+
+
+
+
+```
+
+
+ok this code makes a Major variable with only the first 6 values of id
+we will include this in the code for the project, but not the download portion
+
+```{python}
+# ok, so this will be needed on the main data frame and should be one of the firsts steps
+import pandas as pd
+# note this id column was name ' id ' so a space before and after id so need to check that for hold out
+
+df1 = pd.read_csv("C://git//ml//housing_project//testcode//king_housing-filterstep2.csv", dtype={'id': str})
+
+# Create a new column 'Major' by extracting the first 6 characters of 'id'
+df1['Major'] = df1['id'].str[:-4]
+
+# Create a new column 'Minor' by extracting the last 3 characters of 'id'
+df1['Minor'] = df1['id'].str[-4:]
+
+# Save the updated DataFrame as a new CSV file
+df1.to_csv("king_housing-filterstep3.csv", index=False)
+
+# ok i forgot some of this code is in latin so it needs latin encoding
+
+
+```
+
+
+This will be needed to make another data frame that has major and minor combined. this is different from above because it has less zeros which will return less duplicates
+
+
+```{python}
+import pandas as pd
+
+# Load the DataFrame
+
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//king_housing-filterstep3.csv")
+
+# now combing major and minor but adding 'm' in between to cut out more duplicates
+df2['more'] = df2['Major'].astype(str) + 'm' + df2['Minor'].astype(str)
+
+# Save the updated DataFrame to a new CSV file
+df2.to_csv("C://git//ml//housing_project//testcode//king_housing-filterstep4.csv", index=False)
+
+print("File saved successfully as 'king_housing-filterstep4.csv'")
+
+
+
+```
+
+
+now i need to join either test or prediction df 
+
+```{python}
+
+import pandas as pd
+
+# Load the DataFrames
+df1 = pd.read_csv("C://git//ml//housing_project//testcode//king_housing-filterstep4.csv", dtype={'more': str})
+df2 = pd.read_csv("C://git//ml//housing_project//testcode//merge_data_4.csv", dtype={'more': str})
+
+# Ensure 'more' is treated as a string in both DataFrames
+df1['more'] = df1['more'].astype(str)
+df2['more'] = df2['more'].astype(str)
+
+# Merge DataFrames on 'more' column
+merged_df = df1.merge(df2, on='more', how='inner')  # Change to 'outer' if needed
+
+# Save the merged DataFrame to a new CSV file
+merged_df.to_csv("C://git//ml//housing_project//testcode//final.csv", index=False)
+
+print("Merged file saved successfully as 'final.csv'")
+
+# after this, removing the following is needed. id, Major, Minor, date, ZipCode, SqFtLot
+
+```
+
+
+
+
+```{python}
+
+import pandas as pd
+
+# added code to read in the king county data. 
+holdout_data = pd.read_csv('C://git//ml//housing_project//testcode//team3-module3-predictions.csv', dtype={'id': str})
+
+# separating id column to match major and minor. # adding king county data
+holdout_data['Major'] = holdout_data['id'].str[:-4]
+holdout_data['Minor'] = holdout_data['id'].str[-4:].astype(int).astype(str)
+# now combining again, this is to get rid of trailing and leading zeros to eliminate more duplicates
+holdout_data['more'] = holdout_data['Major'].astype(str) + 'm' + holdout_data['Minor'].astype(str)
+# now inner joining county data set with training or prediction data set
+df2 = pd.read_csv("https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/housing_project/testcode/merged_data_5.csv", dtype={'more': str})
+holdout_data['more'] = holdout_data['more'].astype(str)
+df2['more'] = df2['more'].astype(str)
+holdout_data = holdout_data.merge(df2, on='more', how='inner')
+
+
+holdout_data.to_csv("C://git//ml//housing_project//testcode//test_delete.csv", index=False)
+
+print("Merged file saved successfully as 'final.csv'")
+
+
+
+```
+
+
+
+
