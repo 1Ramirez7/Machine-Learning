@@ -813,9 +813,37 @@ print("Merged file saved successfully as 'final.csv'")
 
 # after this, removing the following is needed. id, Major, Minor, date, ZipCode, SqFtLot
 
-
 ```
 
+
+
+
+```{python}
+
+import pandas as pd
+
+# added code to read in the king county data. 
+holdout_data = pd.read_csv('C://git//ml//housing_project//testcode//team3-module3-predictions.csv', dtype={'id': str})
+
+# separating id column to match major and minor. # adding king county data
+holdout_data['Major'] = holdout_data['id'].str[:-4]
+holdout_data['Minor'] = holdout_data['id'].str[-4:].astype(int).astype(str)
+# now combining again, this is to get rid of trailing and leading zeros to eliminate more duplicates
+holdout_data['more'] = holdout_data['Major'].astype(str) + 'm' + holdout_data['Minor'].astype(str)
+# now inner joining county data set with training or prediction data set
+df2 = pd.read_csv("https://raw.githubusercontent.com/1Ramirez7/Machine-Learning/refs/heads/main/housing_project/testcode/merged_data_5.csv", dtype={'more': str})
+holdout_data['more'] = holdout_data['more'].astype(str)
+df2['more'] = df2['more'].astype(str)
+holdout_data = holdout_data.merge(df2, on='more', how='inner')
+
+
+holdout_data.to_csv("C://git//ml//housing_project//testcode//test_delete.csv", index=False)
+
+print("Merged file saved successfully as 'final.csv'")
+
+
+
+```
 
 
 
