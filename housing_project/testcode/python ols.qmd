@@ -444,7 +444,7 @@ print(housing_df.head()) # Print the first few rows to verify
 import pandas as pd
 
 # URL of the CSV file
-url = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing_holdout_test_mini.csv"
+url = "https://raw.githubusercontent.com/byui-cse/cse450-course/master/data/housing_holdout_test.csv"
 
 # Read the CSV file into a DataFrame
 df = pd.read_csv(url)
@@ -452,7 +452,7 @@ df = pd.read_csv(url)
 # Save the DataFrame as a CSV file
 df.to_csv("housing_holdout_test_mini.csv", index=False)
 
-print("File downloaded and saved as 'housing_holdout_test.csv'")
+print("File downloaded and saved as 'housing_holdout_test_mini.csv'")
 
 
 ```
